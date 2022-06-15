@@ -20,6 +20,28 @@ public:
     }
 };
 
+class Application {
+protected:
+    string name;
+    double size;
+
+public:
+    Application(string &name, double &size) {
+        this->name = name;
+        this->size = size;
+    }
+
+    string getName() {
+        return name;
+    }
+
+    double getSize() const {
+        return size;
+    }
+};
+
+typedef map<string, Application> ApplicationsMap;
+
 class Phone {
 private:
     string manufacturer;
@@ -33,16 +55,10 @@ private:
 
     double memorySize; // gb
 
-    int applicationNumber = 0;
-    double applicationSize = 0; //mb
-
     string OS;
     string IMEI;
 
-    // in megabytes
-    double getAverageApplicationSize() {
-        return applicationSize * 1000 / applicationNumber;
-    }
+    ApplicationsMap applications;
 
     bool checkSystem() {
         if (OS.length() == 0) {
@@ -55,13 +71,13 @@ private:
     }
 
 protected:
-    void validateParams(ParamsMap params) {
+    void validateParams(ParamsMap &params) {
         for (const auto &[key, value]: params) {
             if (key == "manufacturer") {
                 string val = get<string>(value);
 
                 if (!DataValidator::validateString(val)) {
-                    throw "Invalid manufacturer passed";
+                    throw invalid_argument("Invalid manufacturer passed");
                 } else {
                     this->manufacturer = val;
                 }
@@ -69,7 +85,7 @@ protected:
                 string val = get<string>(value);
 
                 if (!DataValidator::validateString(val)) {
-                    throw "Invalid model passed";
+                    throw invalid_argument("Invalid model passed");
                 } else {
                     this->model = val;
                 }
@@ -79,7 +95,7 @@ protected:
                 if (val > 0) {
                     this->CPUfrequency = val;
                 } else {
-                    throw "Invalid CPUfrequency passed";
+                    throw invalid_argument("Invalid CPUfrequency passed");
                 }
             } else if (key == "coreNumber") {
                 int val = get<int>(value);
@@ -87,7 +103,7 @@ protected:
                 if (val > 0) {
                     this->coreNumber = val;
                 } else {
-                    throw "Invalid coreNumber passed";
+                    throw invalid_argument("Invalid coreNumber passed");
                 }
             } else if (key == "RAMSize") {
                 int val = get<int>(value);
@@ -95,13 +111,13 @@ protected:
                 if (val > 0) {
                     this->RAMSize = val;
                 } else {
-                    throw "Invalid RAMSize passed";
+                    throw invalid_argument("Invalid RAMSize passed");
                 }
             } else if (key == "RAMType") {
                 string val = get<string>(value);
 
                 if (!DataValidator::validateString(val)) {
-                    throw "Invalid RAMType passed";
+                    throw invalid_argument("Invalid RAMType passed");
                 } else {
                     this->RAMType = val;
                 }
@@ -111,9 +127,9 @@ protected:
                 if (val > 20) {
                     this->memorySize = val;
                 } else if (val > 0) {
-                    throw "Not enough memory";
+                    throw invalid_argument("Not enough memory");
                 } else {
-                    throw "Invalid MemorySize passed";
+                    throw invalid_argument("Invalid MemorySize passed");
                 }
             } else if (key == "IMEI") {
                 string val = get<string>(value);
@@ -121,10 +137,10 @@ protected:
                 if (DataValidator::validateImei(val)) {
                     this->IMEI = val;
                 } else {
-                    throw "Invalid IMEI passed";
+                    throw invalid_argument("Invalid IMEI passed");
                 }
             } else {
-                throw "Unknown parameter passed";
+                throw invalid_argument("Unknown parameter passed");
             }
         }
     }
@@ -164,12 +180,12 @@ public:
 
     void setOs(string operationSystem) {
         if (!DataValidator::validateString(operationSystem)) {
-            throw "Invalid OS passed";
+            throw invalid_argument("Invalid OS passed");
         }
 
         int OSSize = rand() % 10;
         OSSize = (OSSize > 0) ? OSSize : 1;
-        cout << "OS size - " << OSSize << endl;
+        cout << "OS size (gb) - " << OSSize << endl;
 
         memorySize -= OSSize;
 
@@ -180,47 +196,53 @@ public:
         return OS;
     }
 
-    int getApplicationNumber() {
-        return applicationNumber;
-    }
+    bool checkExistApplication(string name) {
+        auto iterator = applications.find(name);
 
-    void setApplicationNumber(int number) {
-        if (number < 0) {
-            throw "Invalid number passed";
-        } else if (number == 0) {
-            this->hardReset();
-
-            return;
+        if (iterator == applications.end()) {
+            return false;
         }
 
-        applicationNumber = number;
+        return true;
     }
 
-    double getApplicationSize() {
-        return applicationSize;
+    // size in megabytes
+    void installApplication(string name, double size) {
+        if (applications.find(name) == applications.end()) {
+            Application app(name, size);
+            applications.insert({name, app});
+        } else {
+            throw logic_error("The app is already installed");
+        }
+    }
+
+    void uninstallApplication(string name) {
+        if (checkExistApplication(name)) {
+            auto iterator = applications.find(name);
+            applications.erase(iterator);
+        } else {
+            throw logic_error("App not found");
+        }
     }
 
     // in megabytes
-    void setApplicationSize(double size) {
-        if (size < 0) {
-            throw "Invalid size passed";
-        } else if (size == 0) {
-            this->hardReset();
+    double getApplicationsSize() {
+        double sum = 0;
 
-            return;
+        for (const auto &[key, value]: applications) {
+            sum += value.getSize();
         }
 
-        applicationSize = size / 1000;
+        return sum;
     }
 
-    int getAverageApplicationNumber() {
-        return floor((memorySize - applicationSize) * 1000 / this->getAverageApplicationSize());
+    int getApplicationsNumber() {
+        return applications.size();
     }
 
     // removes all phone apps
     void hardReset() {
-        applicationSize = 0;
-        applicationNumber = 0;
+        applications.clear();
     }
 
     string getImei() {
