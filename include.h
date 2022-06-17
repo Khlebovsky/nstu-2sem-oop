@@ -11,13 +11,9 @@ typedef map<string, variant<int, double, string>> ParamsMap;
 
 class DataValidator {
 public:
-    static bool validateString(string string) {
-        return string.size() > 1;
-    }
+    static bool validateString(string string);
 
-    static bool validateImei(string IMEI) {
-        return IMEI.size() == 16;
-    }
+    static bool validateImei(string IMEI);
 };
 
 class Phone {
@@ -40,190 +36,47 @@ private:
     string IMEI;
 
     // in megabytes
-    double getAverageApplicationSize() {
-        return applicationSize * 1000 / applicationNumber;
-    }
+    double getAverageApplicationSize();
 
-    bool checkSystem() {
-        if (OS.length() == 0) {
-            cout << "Please install the system" << endl;
-
-            return false;
-        }
-
-        return true;
-    }
+    bool checkSystem();
 
 protected:
-    void validateParams(ParamsMap params) {
-        for (const auto &[key, value]: params) {
-            if (key == "manufacturer") {
-                string val = get<string>(value);
-
-                if (!DataValidator::validateString(val)) {
-                    throw "Invalid manufacturer passed";
-                } else {
-                    this->manufacturer = val;
-                }
-            } else if (key == "model") {
-                string val = get<string>(value);
-
-                if (!DataValidator::validateString(val)) {
-                    throw "Invalid model passed";
-                } else {
-                    this->model = val;
-                }
-            } else if (key == "CPUfrequency") {
-                double val = get<double>(value);
-
-                if (val > 0) {
-                    this->CPUfrequency = val;
-                } else {
-                    throw "Invalid CPUfrequency passed";
-                }
-            } else if (key == "coreNumber") {
-                int val = get<int>(value);
-
-                if (val > 0) {
-                    this->coreNumber = val;
-                } else {
-                    throw "Invalid coreNumber passed";
-                }
-            } else if (key == "RAMSize") {
-                int val = get<int>(value);
-
-                if (val > 0) {
-                    this->RAMSize = val;
-                } else {
-                    throw "Invalid RAMSize passed";
-                }
-            } else if (key == "RAMType") {
-                string val = get<string>(value);
-
-                if (!DataValidator::validateString(val)) {
-                    throw "Invalid RAMType passed";
-                } else {
-                    this->RAMType = val;
-                }
-            } else if (key == "MemorySize") {
-                double val = get<double>(value);
-
-                if (val > 20) {
-                    this->memorySize = val;
-                } else if (val > 0) {
-                    throw "Not enough memory";
-                } else {
-                    throw "Invalid MemorySize passed";
-                }
-            } else if (key == "IMEI") {
-                string val = get<string>(value);
-
-                if (DataValidator::validateImei(val)) {
-                    this->IMEI = val;
-                } else {
-                    throw "Invalid IMEI passed";
-                }
-            } else {
-                throw "Unknown parameter passed";
-            }
-        }
-    }
+    void validateParams(ParamsMap params);
 
 public:
-    Phone(ParamsMap &params) {
-        this->validateParams(params);
-    }
+    Phone(ParamsMap &params);
 
-    string getManufacturer() {
-        return manufacturer;
-    }
+    string getManufacturer();
 
-    string getModel() {
-        return model;
-    }
+    string getModel();
 
-    double getCpufrequency() {
-        return CPUfrequency;
-    }
+    double getCpufrequency();
 
-    int getCoreNumber() {
-        return coreNumber;
-    }
+    int getCoreNumber();
 
-    string getRamType() {
-        return RAMType;
-    }
+    string getRamType();
 
-    int getRamSize() {
-        return RAMSize;
-    }
+    int getRamSize();
 
-    double getMemorySize() {
-        return memorySize;
-    }
+    double getMemorySize();
 
-    void setOs(string operationSystem) {
-        if (!DataValidator::validateString(operationSystem)) {
-            throw "Invalid OS passed";
-        }
+    void setOs(string operationSystem);
 
-        int OSSize = rand() % 10;
-        OSSize = (OSSize > 0) ? OSSize : 1;
-        cout << "OS size - " << OSSize << endl;
+    string getOs();
 
-        memorySize -= OSSize;
+    int getApplicationNumber();
 
-        OS = operationSystem;
-    }
+    void setApplicationNumber(int number);
 
-    string getOs() {
-        return OS;
-    }
-
-    int getApplicationNumber() {
-        return applicationNumber;
-    }
-
-    void setApplicationNumber(int number) {
-        if (number < 0) {
-            throw "Invalid number passed";
-        } else if (number == 0) {
-            this->hardReset();
-
-            return;
-        }
-
-        applicationNumber = number;
-    }
-
-    double getApplicationSize() {
-        return applicationSize;
-    }
+    double getApplicationSize();
 
     // in megabytes
-    void setApplicationSize(double size) {
-        if (size < 0) {
-            throw "Invalid size passed";
-        } else if (size == 0) {
-            this->hardReset();
+    void setApplicationSize(double size);
 
-            return;
-        }
-
-        applicationSize = size / 1000;
-    }
-
-    int getAverageApplicationNumber() {
-        return floor((memorySize - applicationSize) * 1000 / this->getAverageApplicationSize());
-    }
+    int getAverageApplicationNumber();
 
     // removes all phone apps
-    void hardReset() {
-        applicationSize = 0;
-        applicationNumber = 0;
-    }
+    void hardReset();
 
-    string getImei() {
-        return IMEI;
-    }
+    string getImei();
 };
