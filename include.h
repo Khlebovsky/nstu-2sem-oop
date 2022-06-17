@@ -9,6 +9,21 @@ using namespace std;
 
 typedef map<string, variant<int, double, string>> ParamsMap;
 
+class Application {
+protected:
+    string name;
+    double size;
+
+public:
+    Application(string &name, double &size);
+
+    string getName();
+
+    double getSize() const;
+};
+
+typedef map<string, Application> ApplicationsMap;
+
 class DataValidator {
 public:
     static bool validateString(string string);
@@ -29,19 +44,15 @@ private:
 
     double memorySize; // gb
 
-    int applicationNumber = 0;
-    double applicationSize = 0; //mb
-
     string OS;
     string IMEI;
 
-    // in megabytes
-    double getAverageApplicationSize();
+    ApplicationsMap applications;
 
     bool checkSystem();
 
 protected:
-    void validateParams(ParamsMap params);
+    void validateParams(ParamsMap &params);
 
 public:
     Phone(ParamsMap &params);
@@ -64,16 +75,16 @@ public:
 
     string getOs();
 
-    int getApplicationNumber();
+    int getApplicationsNumber();
 
-    void setApplicationNumber(int number);
+    bool checkExistApplication(string name);
 
-    double getApplicationSize();
+    // size in megabytes
+    void installApplication(string name, double size);
 
-    // in megabytes
-    void setApplicationSize(double size);
+    void uninstallApplication(string name);
 
-    int getAverageApplicationNumber();
+    double getApplicationsSize();
 
     // removes all phone apps
     void hardReset();
